@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="author" content="Navdeep singh">
+  <meta name="description" content="Cat Info Viewer - Filter, Sort, and Analyze Cat Data">
+  <title>Cat Info Viewer</title>
+  <style>
+    body {
+      font-family: Arial;
+    }
+    input, select, button {
+      margin: 5px;
+    }
+    pre {
+      background: #f4f4f4;
+      padding: 10px;
+      border: 1px solid #ccc;
+      max-height: 200px;
+      overflow-y: auto;
+    }
+  </style>
+</head>
+<body>
+
+  <h2>Cat Info Viewer</h2>
+
+  <!-- Button to show all cat names -->
+  <button onclick="showAllNames()">All Names</button>
+
+  <br>
+
+  <!-- Input and button for filtering cats by health issue -->
+  <label for="healthIssue">Health Issue:</label>
+  <input type="number" id="healthIssue">
+  <button onclick="filterByHealthIssue()">Health Issues</button>
+
+  <br>
+
+  <!-- Radio buttons to choose between imperial and metric weight -->
+  <label>Weight:</label>
+  <input type="radio" name="unit" value="imperial" checked> Imperial
+  <input type="radio" name="unit" value="metric"> Metric
+  <button onclick="showWeights()">Weight</button>
+
+  <br>
+
+  <!-- Button to display intelligence and child-friendliness -->
+  <button onclick="showIntelligence()">Intelligence + Friendly</button>
+
+  <br>
+
+  <!-- Button to calculate and display average intelligence of all cats -->
+  <button onclick="showAverageIntelligence()">Average Intelligence</button>
+
+  <br>
+
+  <!-- Input and button to show average intelligence of child-friendly cats -->
+  <label for="childFriendly">Average Intelligence for Child Friendly ≥ </label>
+  <input type="number" id="childFriendly" value="4">
+  <button onclick="averageChildFriendlyIntelligence()">Average Intelligence for Child Friendly ≥</button>
+
+  <br><br>
+
+  <!-- Display output results here -->
+  <pre id="output">< All results should be displayed here ></pre>
+
+<script>
+   let cats = [];
+
+    // Load data from external source
+    fetch("https://api.thecatapi.com/v1/breeds")
+      .then(res => res.json())
+      .then(data => cats = data)
+      .catch(err => console.error("Failed to fetch cat data", err));
+
+  // Show names of all cats
+  function showAllNames() {
+    const output = cats.map(cat => cat.name).join("\n");
+    document.getElementById("output").textContent = output;
+  }
+
+  // Filter cats by a specific health issue (entered by user)
+  function filterByHealthIssue() {
+    const issue = parseInt(document.getElementById("healthIssue").value);
+    const filtered = cats.filter(cat => cat.health_issues === issue);
+    const output = filtered.map(cat => cat.name).join("\n") || "No cats found with that health issue.";
+    document.getElementById("output").textContent = output;
+  }
+
+  // Show weights for each cat in selected unit (imperial/metric)
+  function showWeights() {
+    const unit = document.querySelector('input[name="unit"]:checked').value;
+    let output = "Weight (" + unit + "):\n";
+    cats.forEach(cat => {
+      output += `${cat.name}: ${cat.weight[unit]}\n`;
+    });
+    document.getElementById("output").textContent = output;
+  }
+
+  // Display intelligence and child-friendliness of all cats
+  function showIntelligence() {
+    let output = "I - F\n";  // Header: Intelligence - Friendliness
+    cats.forEach(cat => {
+      output += `${cat.intelligence} - ${cat.child_friendly}\n`;
+    });
+    document.getElementById("output").textContent = output;
+  }
+
+  // Calculate and display average intelligence of all cats
+  function showAverageIntelligence() {
+    const avg = cats.reduce((sum, cat) => sum + cat.intelligence, 0) / cats.length;
+    document.getElementById("output").textContent = "Average Intelligence: " + avg.toFixed(2);
+  }
+
+  // Calculate and show average intelligence for cats with child_friendly rating >= user-defined value
+  function averageChildFriendlyIntelligence() {
+    const threshold = parseInt(document.getElementById("childFriendly").value);
+    const filtered = cats.filter(cat => cat.child_friendly >= threshold);
+    
+    // If no matching cats found
+    if (filtered.length === 0) {
+      document.getElementById("output").textContent = "No cats meet the child-friendly threshold.";
+      return;
+    }
+
+    // Calculate average intelligence of filtered cats
+    const avg = filtered.reduce((sum, cat) => sum + cat.intelligence, 0) / filtered.length;
+    document.getElementById("output").textContent = "Average Intelligence: " + avg.toFixed(2);
+  }
+</script>
+
+</body>
+</html>
